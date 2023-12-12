@@ -1,5 +1,7 @@
 ## Aspire Virtual Machine
 
+**Note that this is a restructuring of the original AspireVM**
+
 The Aspire Virtual Machine is a 64-bit virtual machine that doesn't emulate any real world architecture much like **`Java`**\. Aspire is currently immature as a 
 VM\. It does, however, provide a basic instruction set **\(Incomplete at the time of writing this\)**\. The main purpose of this VM: the same as any other VM that I have created is to learn how computers work\.
 **[Engima](https://github.com/MegrajChauhan/Enigma-Virtual-Machine), Enigma [v2](https://github.com/MegrajChauhan/Enigma-VM-Buffed) and [v3](https://github.com/MegrajChauhan/Enigma-VM), and [Khoya](https://github.com/MegrajChauhan/Khoya-VM)** all are my attempts in achieving this goal\.
