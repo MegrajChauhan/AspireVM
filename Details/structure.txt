@@ -1,0 +1,5 @@
+Know which file contains details about what:
+
+what.txt: What systems are supported and the basic details of the VM.
+memory.txt: How the memory is structured and implemented.
+abstractionLayer.txt: Explains the abstraction layer of the VM.

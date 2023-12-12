@@ -1,0 +1,14 @@
+The List of instructions:
+
+nop: The no operation instruction. Tells the core to do absolutely nothing. OPCODE: 0, OPERANDS: NONE
+     Encoding: 0000000000000000000000000000000000000000000000000000000000000000
+halt: The halt instruction. Tells the core to stop execution. It generates an interrupt which shuts down the core. OPCODE: 1, OPERANDS: NONE
+     Encoding: 0000000100000000000000000000000000000000000000000000000000000000
+move: Move a value from/to a register. Has two variants: immediate to a register, register to a register: OPCODE: 2 and 3
+     Encoding: immediate to a register: 00000010<6 bytes immediate>0000<addressing for destination register>
+     Encoding: register to a register: 00000011000000000000000000000000000000000000000000000000<Address for destination register><addressing for source register>
+[The second variant has 3 more sub-variants that move 8 bits, 16 bits and 32 bits from the operand registers and have OPCODES 4, 5 and 6 respectively]
+
+movezx and movesx: Moves a value by zero extending it or by sign extending it respectively. The encoding is the same as move but has different OPCODES.
+                   The same sub-variants are also present.
+ 

@@ -1,0 +1,9 @@
+Understanding the Abstraction Layer:
+
+The Abstraction Layer in Aspire serves the crucial role of simplifying the intricate process of interacting with the host operating system. This layer employs various modules, each tailored to seamlessly communicate with the host OS using specific functions and libraries.
+
+lib/thread:
+
+    aspire_posix_threads.h: Defines structures related to multi-threading specifically designed for systems utilizing posix-threads.
+    aspire_threads.h: Dynamically identifies the host OS and adapts by utilizing the corresponding definitions.
+    Note: Structures for Windows systems and other platforms are currently under development and not yet available.

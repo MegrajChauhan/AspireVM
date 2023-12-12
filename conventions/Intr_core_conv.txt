@@ -1,0 +1,1 @@
+When adding a new core, the starting address of execution for the new core is taken from the interrupting core's Ax1 register. 

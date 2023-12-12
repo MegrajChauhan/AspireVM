@@ -1,0 +1,2 @@
+Aspire is currently supported by Operating systems that are Unix based, Linux or similar system.
+Aspire requires the Host computer to be 64-bit.

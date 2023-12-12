@@ -1,0 +1,36 @@
+Understanding Aspire's Memory System:
+
+    Addressing and Size:
+        Each address in Aspire corresponds to 8 bytes or 1 qword.
+        Memory is organized into fixed-size pages.
+
+    Memory Divisions:
+        Aspire's memory is divided into three main components: Stack, Heap (Data memory), and Instruction memory.
+
+Stack:
+
+    The stack is a private 256KB memory segment for each core.
+    Inaccessible to programs, it is autonomously managed by the core.
+    The stack features fixed size and cannot be dynamically increased.
+    Core-managed registers, sp, and bp, are also inaccessible to programs.
+
+Heap (Data Memory):
+
+    The heap stores program data and is the only memory accessible to programs.
+    Programs can freely read from and write to the heap.
+    Managed by the Data memory structure, it supports extensibility.
+    Future user program requests for additional memory are handled by the Data memory structure.
+    Memory within the heap is organized into pages.
+
+Instruction Memory:
+
+    Similar to the stack, managed by the Manager module.
+    Utilizes fixed-sized pages, akin to the heap, for storing instructions.
+    The core(and the programs) has no direct access to instruction memory, except for reading instructions.
+
+Additional Note:
+
+    The "Hub" module, still under development, serves as part of the abstraction layer.
+    Its role is to abstract communication with the host operating systems for memory.
+    Once complete, the Hub will forward memory requests from the VM to the OS.
+
