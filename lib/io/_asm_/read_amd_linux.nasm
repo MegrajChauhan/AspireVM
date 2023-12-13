@@ -37,11 +37,7 @@ _asp_read_until:
      mov r8, rsi ; save the character
      mov r9, 0   ; acts as character counter
 read_loop:
-     mov rax, 0      ; read syscall
-     mov rsi, rdi    ; the pointer to the buffer
-     mov rdi, _STDIN ; from stdin
-     mov rdx, 1      ; just 1 byte
-     syscall         ; syscall
+     call _asp_read_byte
      cmp rax, 1      ; was 1 byte read
      jne read_error
      mov rdi, rsi    ; restore the changed pointer

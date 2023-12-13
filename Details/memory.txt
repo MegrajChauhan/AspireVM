@@ -1,36 +1,23 @@
-Understanding Aspire's Memory System:
+Page System in Detail:
+    In Aspire's memory architecture, both Instruction Memory (IM) and Data Memory (DM) utilize the Page System for storing instructions and data, respectively.
+    The Page System involves managing memory in chunks called pages. Each page is of a fixed size, specifically 1MB in this case.
+    This approach offers several advantages, particularly in terms of flexibility and efficiency. Programs running on the VM can dynamically increase their memory capacity by requesting new pages from the Data Memory.
 
-    Addressing and Size:
-        Each address in Aspire corresponds to 8 bytes or 1 qword.
-        Memory is organized into fixed-size pages.
+Memory Modules Overview:
 
-    Memory Divisions:
-        Aspire's memory is divided into three main components: Stack, Heap (Data memory), and Instruction memory.
+Instruction Memory (IM):
+    The IM is strictly separated from Data Memory and the stack to enhance security. Programs can only access Data Memory, ensuring the integrity and safety of the running program.
+    Instructions in IM are stored with a unique addressing scheme where one address represents 8 bytes. This design choice optimizes the retrieval of instructions.
 
-Stack:
+Data Memory (DM):
+    Similar to IM, DM also employs the Page System, allowing programs to manage chunks of memory according to their needs.
+    Programs can request new pages from DM to expand their data storage capacity dynamically.
+    The entire DM is accessible to programs, providing a dedicated space for storing and manipulating data.
 
-    The stack is a private 256KB memory segment for each core.
-    Inaccessible to programs, it is autonomously managed by the core.
-    The stack features fixed size and cannot be dynamically increased.
-    Core-managed registers, sp, and bp, are also inaccessible to programs.
+Historical Context:
+    The separation of memory modules, along with the adoption of the Page System, evolved from the initial design challenges faced by Aspire.
+    In the earlier design, inspired by real hardware examples, one address represented one byte, leading to inefficiencies in reading 64-bit instructions.
+    The introduction of a cache initially improved performance, but it was later replaced with the current Page System and memory division for both IM and DM.
 
-Heap (Data Memory):
-
-    The heap stores program data and is the only memory accessible to programs.
-    Programs can freely read from and write to the heap.
-    Managed by the Data memory structure, it supports extensibility.
-    Future user program requests for additional memory are handled by the Data memory structure.
-    Memory within the heap is organized into pages.
-
-Instruction Memory:
-
-    Similar to the stack, managed by the Manager module.
-    Utilizes fixed-sized pages, akin to the heap, for storing instructions.
-    The core(and the programs) has no direct access to instruction memory, except for reading instructions.
-
-Additional Note:
-
-    The "Hub" module, still under development, serves as part of the abstraction layer.
-    Its role is to abstract communication with the host operating systems for memory.
-    Once complete, the Hub will forward memory requests from the VM to the OS.
-
+Future Considerations:
+    The memory architecture sets the foundation for potential future features, such as dynamic library loading. If implemented, programs may use provided APIs to interact with the instruction memory.

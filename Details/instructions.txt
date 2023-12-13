@@ -1,14 +1,89 @@
-The List of instructions:
+Instructions are 64-bit long. 
+The opcodes for the instructions are 8-bit long which doesn't provide enough possible instructions(just 255) and hence this may change in the future.
 
-nop: The no operation instruction. Tells the core to do absolutely nothing. OPCODE: 0, OPERANDS: NONE
-     Encoding: 0000000000000000000000000000000000000000000000000000000000000000
-halt: The halt instruction. Tells the core to stop execution. It generates an interrupt which shuts down the core. OPCODE: 1, OPERANDS: NONE
-     Encoding: 0000000100000000000000000000000000000000000000000000000000000000
-move: Move a value from/to a register. Has two variants: immediate to a register, register to a register: OPCODE: 2 and 3
-     Encoding: immediate to a register: 00000010<6 bytes immediate>0000<addressing for destination register>
-     Encoding: register to a register: 00000011000000000000000000000000000000000000000000000000<Address for destination register><addressing for source register>
-[The second variant has 3 more sub-variants that move 8 bits, 16 bits and 32 bits from the operand registers and have OPCODES 4, 5 and 6 respectively]
+Here is a list of all the instruction along with their corresponding OPCODES:
 
-movezx and movesx: Moves a value by zero extending it or by sign extending it respectively. The encoding is the same as move but has different OPCODES.
-                   The same sub-variants are also present.
- 
+Note: Those instructions with [a - b] are those who have variants.
+
+A. Extra Instructions
+  0. nop       -> No operation
+[45-48]. exchg -> Exchange values from two registers
+ 75. reset     -> Reset most registers to 0. Also affects the flags
+
+B. Control flow instructions
+  1. halt -> Stop execution
+ [49-50]. cmp -> Compare two values and set the required flags
+ 51. jmp  -> Jump to a specific address
+ 52. jz   -> Jump if zero flag is set
+ 53. jnz  -> Jump if zero flag is not set
+ 54. je   -> Jump if equal flag is set
+ 55. jne  -> Jump if equal flag is not set
+ 56. jg   -> Jump if greater flag is set
+ 57. js   -> Jump is greater flag is not set
+ 58. jo   -> Jump if overflow flag is set
+ 59. jno   -> Jump if overflow flag is not set
+ 60. jn    -> Jump if negative flag is set
+ 61. jnn   -> Jump if negative flag is not set
+ 62. jge   -> Jump if greater or equal flag is set
+ 63. jse   -> Jump if greater or equal flag is not set
+ 93. call  -> Jump to a function routine
+ 94. ret   -> Return from a function routine
+120. intr  -> Interrupt the Manager for certain services
+
+Flags Instructions:
+ 76. cflags -> Clear the flags
+ 77. clz    -> Clear zero flag
+ 78. cln    -> Clear negative flag
+ 79. cle    -> Clear equal flag
+ 80. clg    -> Clear greater flag
+ 81. clo    -> Clear overflow flag
+ 82. clc    -> Clear carry flag
+
+Bitwise operations:
+ [64 - 65]. and -> Perform AND operation on any two values
+ [66 - 67]. or  -> Perform OR operation on any two values
+ [68 - 69]. Xor -> Perform XOR operation on any two values
+ 70. not        -> Perform NOT operation on a value
+ 71. lshift     -> Shift the bits left in the given register by a certain position
+ 72. rshift     -> Shift the bits right in the given register by a certain position
+
+Data Movement instructions:
+ [2 - 6]. mov     -> Move values to a register[More variants may be added]
+ [7 - 11]. movzx  -> Move zero extended values to a register[More variants may be added]
+ [12 - 16]. movsx -> Move sign extended values to a register[More variants may be added]
+ [17 - 44]. movf  -> Conditional moves where 'f' means the flags i.e z, nz, e, ne etc.
+ 83. load         -> load from memory to a register
+ 84. store        -> store from register to memory
+ [85 - 87]. lea   -> load an address to a register 
+
+Stack based instructions:
+ [88 - 89]. push -> Push a value to the stack
+ 90. pop         -> Pop a value from the stack
+ 91. pusha       -> Push the values of most registers to the stack
+ 92. popa        -> Pop the values to the registers in the order they were pushed.
+ 95. sba         -> Stack Base Access - read any address at the front of the base pointer
+
+Arithmetic instructions:
+ 73. inc -> increment the value in a register by 1
+ 74. dec -> decrement the value in a register by 1
+
+ unsigned:
+ [96 - 97]. addc -> Add with carry
+ [98 - 99]. add  -> add two values
+ [100 - 101]. sub -> subtraction
+ [102 - 103]. mul -> multiplication
+ [104 - 105]. div -> division
+ [106 - 107]. mod -> modulus
+
+ signed:
+ (Same description as signed but for signed numbers)
+ [108 - 109]. iaddc
+ [110 - 111]. iadd
+ [112 - 113]. isub
+ [114 - 115]. imul
+ [116 - 117]. idiv
+ [118 - 119]. imod
+
+[Instructions for floats are yet to be added. This is not the final ISA. Things may be tweaked.]
+[The encodings will be added to "encodings.txt"] 
+
