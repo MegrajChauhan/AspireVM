@@ -45,6 +45,8 @@ typedef struct _Asp_Manager _Asp_Manager;
 #include "aspire_interrupt_handler.h"
 #include "../Components/CPU/aspire_cpu.h"
 
+#include "aspire_input.h"
+
 struct _Asp_Manager
 {
   _Asp_Thread **core_threads; // must be equal to the number of cores

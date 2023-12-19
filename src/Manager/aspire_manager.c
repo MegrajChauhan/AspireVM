@@ -39,6 +39,11 @@ _Asp_Manager *_asp_manager_init_manager()
         _asp_manager_destroy_manager(manager);
         return NULL;
     }
+    if (_asp_InBuf_init() == aFalse)
+    {
+        _asp_manager_destroy_manager(manager);
+        return NULL;
+    }
     return manager;
 }
 
@@ -256,4 +261,5 @@ void _asp_manager_exit(_Asp_Manager *manager, aQword core_id)
     manager->stop_vm = aTrue;
     _asp_cond_signal(manager->cond);
     _asp_mutex_unlock(manager->lock);
+    _asp_InBuf_destroy();
 }
