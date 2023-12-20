@@ -240,22 +240,27 @@ aBool _asp_memory_write_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t byte
     register aQword _qs[_len]; // the grouped q's
     for (aSize_t i = 0; i < _num_of_q; i++)
     {
-        _qs[i] = (_qs[i] << 56) & *bytes++;
-        _qs[i] = (_qs[i] << 48) & *bytes++;
-        _qs[i] = (_qs[i] << 40) & *bytes++;
-        _qs[i] = (_qs[i] << 32) & *bytes++;
-        _qs[i] = (_qs[i] << 24) & *bytes++;
-        _qs[i] = (_qs[i] << 16) & *bytes++;
-        _qs[i] = (_qs[i]) & *bytes++;
+        _qs[i] = (_qs[i]) | bytes[0];
+        _qs[i] = (_qs[i] << 8) | bytes[1];
+        _qs[i] = (_qs[i] << 8) | bytes[2];
+        _qs[i] = (_qs[i] << 8) | bytes[3];
+        _qs[i] = (_qs[i] << 8) | bytes[4];
+        _qs[i] = (_qs[i] << 8) | bytes[5];
+        _qs[i] = (_qs[i] << 8) | bytes[6];
+        _qs[i] = (_qs[i] << 8) & bytes[7];
+        bytes += 8;
     }
     if (_rem_q > 0)
     {
         // there is this extra q
-        for (aSize_t i = 0; i < _rem_q; i++)
+        _qs[_num_of_q] = (_qs[_num_of_q]) | *bytes++;
+        for (aSize_t i = 1; i < _rem_q; i++)
         {
-            
+            _qs[_num_of_q] = (_qs[_num_of_q] << 8) | *bytes++;
         }
+        _qs[_num_of_q] = _qs[_num_of_q] << (8 - _num_of_q) * 8;
     }
+    return _asp_memory_write_chunk(memory, address, _qs, _len);
 }
 
 aBool _asp_memory_read(_Asp_Memory *memory, aAddr_t address, aQptr_t _store_in)

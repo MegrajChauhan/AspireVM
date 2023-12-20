@@ -15,6 +15,10 @@ global _asp_read_byte
 global _asp_read_bytes
 global _asp_read_until
 global _asp_set_buf_limit
+
+global _asp_write_byte
+global _asp_Write_bytes
+
 ; global _asp_read_until_or_filled
 
 ; ;; void _asp_set_buf_limit(aSize_t buf_lim, aSize_t* buffer_filled_to, aBptr_t buffer);
@@ -71,3 +75,13 @@ _asp_read_bytes: ;; used to read strings of whose we know the size of
 ; read_error:
 ;      ret
  
+ _asp_write_byte:
+     ; rdi contains the character to print
+     mov rax, 1       ;; write syscall
+     mov rsi, rdi     ;; the character to print
+     mov rdi, _STDOUT ;; the standard output
+     mov dx, 1        ;; just 1 character
+     ret              ;; should return 1 on success
+
+_asp_Write_bytes:
+     ; rdi contains the characters to print

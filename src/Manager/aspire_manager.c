@@ -299,6 +299,13 @@ void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id)
         _asp_manager_error(manager, "IO error: Unable or failed to read any byte");
         return;
     }
-    // if (_asp_memory_write_chunk(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], &_in, ))
+    if (_asp_memory_write_bytes(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], &_in, len) == aFalse)
+    {
+        // this is an error
+        manager->cpu[core_id]->running = aFalse;
+        _asp_mutex_unlock(manager->lock);
+        _asp_manager_error(manager, "Internal Error: Failed to access memory"); // the error could have been anything and yet we are saying its the VM's fault
+        return;
+    }
     _asp_mutex_unlock(manager->lock); // everything worked
 }

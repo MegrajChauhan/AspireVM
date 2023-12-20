@@ -32,6 +32,7 @@ enum
     _INTR_ADD_NEW_CORE,
     _INTR_READ_NUM, // these IO interrupts are temporary and might change in the future
     _INTR_READ_CHAR,
+    _INTR_READ_STR,
 
     _INTR_STOP_CPU = 256, // this interrupt is sent by the host core which has encountered the halt instruction[shutsdown the core]
     _INTR_DIVIDE_BY_ZERO,
