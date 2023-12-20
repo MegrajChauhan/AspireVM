@@ -177,22 +177,85 @@ aBool _asp_memory_write_chunk(_Asp_Memory *memory, aAddr_t address, aQptr_t data
         memory->err = _ASP_PAGE_FAULT; // oh.. Then it is a page fault
         return aFalse;
     }
-    // get the address
-    if (!_ASP_CHECK_BOUNDS(offset + length))
-    {
-        memory->err = _ASP_SEG_FAULT; // NO! A seg fault!
-        return aFalse;
-    }
+    register aBool _is_multi_page = !_ASP_CHECK_BOUNDS(offset + length) ? aTrue : aFalse;
     _asp_mutex_lock(memory->lock);
     register aQptr_t taddress = &(memory->pages[page_num]->addresses[offset]);
     // writing all of the data
-    for (aSize_t i = 0; i < length; i++)
+    if (_is_multi_page == aFalse)
     {
-        *taddress = data[i];
-        taddress++;
+        // the write is being requested in only one page
+        for (aSize_t i = 0; i < length; i++)
+        {
+            *taddress = data[i];
+            taddress++;
+        }
+    }
+    else
+    {
+        // the write will write to multiple pages
+        // first we need to confirm that there is a next page
+        // we don't need to confirm if the address is in range
+        // we need to keep track of how many pages are being written here
+        // in future, for optimization, we might change how we do this
+        register aSize_t _pgae_write_count = length / _ASP_PAGE_SIZE;    // this gives the number of page
+        register aSize_t _remaining_addresses = length % _ASP_PAGE_SIZE; // the remaining addresses
+        if (memory->page_count <= (page_num + _pgae_write_count + _remaining_addresses > 0 ? 1 : 0))
+        {
+            // this is a page fault
+            memory->err = _ASP_PAGE_FAULT;
+            _asp_mutex_unlock(memory->lock);
+            return aFalse;
+        }
+        for (aSize_t i = 0; i < _pgae_write_count; i++)
+        {
+            for (aSize_t j = 0; j < _ASP_PAGE_SIZE; j++)
+            {
+                *taddress = *data;
+                taddress++;
+                data++;
+            }
+            taddress = &(memory->pages[(page_num++)]->addresses); // goto the next page
+        }
+        if (_remaining_addresses > 0)
+        {
+            // taddress is pointing to this new page
+            for (aSize_t i = 0; i < _remaining_addresses; i++)
+            {
+                *taddress = *data;
+                taddress++;
+                data++;
+            }
+        }
     }
     _asp_mutex_unlock(memory->lock);
     return aTrue;
+}
+
+aBool _asp_memory_write_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t bytes, aSize_t length)
+{
+    // we will leave the writing to _asp_memory_write for writing, we just have to group bytes into Qwords
+    register aSize_t _num_of_q = length / 8;
+    register aSize_t _rem_q = length % 8;
+    register aSize_t _len = _num_of_q + (_rem_q > 0) ? 1 : 0;
+    register aQword _qs[_len]; // the grouped q's
+    for (aSize_t i = 0; i < _num_of_q; i++)
+    {
+        _qs[i] = (_qs[i] << 56) & *bytes++;
+        _qs[i] = (_qs[i] << 48) & *bytes++;
+        _qs[i] = (_qs[i] << 40) & *bytes++;
+        _qs[i] = (_qs[i] << 32) & *bytes++;
+        _qs[i] = (_qs[i] << 24) & *bytes++;
+        _qs[i] = (_qs[i] << 16) & *bytes++;
+        _qs[i] = (_qs[i]) & *bytes++;
+    }
+    if (_rem_q > 0)
+    {
+        // there is this extra q
+        for (aSize_t i = 0; i < _rem_q; i++)
+        {
+            
+        }
+    }
 }
 
 aBool _asp_memory_read(_Asp_Memory *memory, aAddr_t address, aQptr_t _store_in)
@@ -230,18 +293,49 @@ aBool _asp_memory_read_chunk(_Asp_Memory *memory, aAddr_t address, aSize_t lengt
         memory->err = _ASP_PAGE_FAULT; // oh.. Then it is a page fault
         return aFalse;
     }
-    // get the address
-    if (!_ASP_CHECK_BOUNDS(offset + length))
-    {
-        memory->err = _ASP_SEG_FAULT; // NO! A seg fault!
-        return aFalse;
-    }
+    register aBool _is_multi_page = !_ASP_CHECK_BOUNDS(offset + length);
     _asp_mutex_lock(memory->lock);
     register aQptr_t data = &(memory->pages[page_num]->addresses[offset]);
-    for (aSize_t i = 0; i < length; i++)
+    if (_is_multi_page == aFalse)
     {
-        _store_in[i] = data;
-        data++;
+        // the read is not multipage
+        for (aSize_t i = 0; i < length; i++)
+        {
+            _store_in[i] = data;
+            data++;
+        }
+    }
+    else
+    {
+        register aSize_t _pgae_write_count = length / _ASP_PAGE_SIZE;    // this gives the number of page
+        register aSize_t _remaining_addresses = length % _ASP_PAGE_SIZE; // the remaining addresses
+        if (memory->page_count <= (page_num + _pgae_write_count + _remaining_addresses > 0 ? 1 : 0))
+        {
+            // this is a page fault
+            memory->err = _ASP_PAGE_FAULT;
+            _asp_mutex_unlock(memory->lock);
+            return aFalse;
+        }
+        for (aSize_t i = 0; i < _pgae_write_count; i++)
+        {
+            for (aSize_t j = 0; j < _ASP_PAGE_SIZE; j++)
+            {
+                *_store_in = *data;
+                _store_in++;
+                data++;
+            }
+            data = &(memory->pages[(page_num++)]->addresses); // goto the next page
+        }
+        if (_remaining_addresses > 0)
+        {
+            // data is pointing to this new page
+            for (aSize_t i = 0; i < _remaining_addresses; i++)
+            {
+                *_store_in = *data;
+                _store_in++;
+                data++;
+            }
+        }
     }
     _asp_mutex_unlock(memory->lock);
     return aTrue;

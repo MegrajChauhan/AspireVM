@@ -95,6 +95,8 @@ aBool _asp_memory_write(_Asp_Memory *memory, aAddr_t address, aQword value);
 
 aBool _asp_memory_write_chunk(_Asp_Memory *memory, aAddr_t address, aQptr_t data, aSize_t length);
 
+aBool _asp_memory_write_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t bytes, aSize_t length); // length means the number of bytes
+
 aBool _asp_memory_read(_Asp_Memory *memory, aAddr_t address, aQptr_t _store_in);
 
 aBool _asp_memory_read_chunk(_Asp_Memory *memory, aAddr_t address, aSize_t length, aQptr_t _store_in);

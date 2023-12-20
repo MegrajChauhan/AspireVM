@@ -107,9 +107,8 @@ void _asp_manager_error(_Asp_Manager *manager, acStr_t err_msg);
 
 void _asp_manager_exit(_Asp_Manager *manager, aQword core_id);
 
-/*
- The VM uses somethings from C like the C standard IO. As the VM is still very immature, we can focus on improving it for now. Later on, we can add custom
- IO in our own way using buffers and methods to manage those buffers.
-*/
+void _asp_manager_IO_readChar(_Asp_Manager *manager, aQword core_id);
+
+void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id);
 
 #endif

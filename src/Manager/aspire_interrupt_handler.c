@@ -27,13 +27,13 @@ void _asp_handle_interrupt(_Asp_Intr_Hdlr *hdlr, aQword interrupt_number, aQword
         _asp_manager_stop_core(hdlr->manager, core_id);
         break; // that core stops execution
     case _INTR_DIVIDE_BY_ZERO:
-        _asp_manager_error(hdlr->manager, "Divide by zero");
+        _asp_manager_error(hdlr->manager, "Arithmetic Fault: Divide by zero");
         break;
     case _INTR_ADD_NEW_CORE:
         _asp_manager_add_core(hdlr->manager, core_id);
         break; // may stop the VM or not
     case _INTR_MEMORY_ACCESS_OUT_OF_BOUNDS:
-        _asp_manager_error(hdlr->manager, "Accessing memory that is out of bounds.");
+        _asp_manager_error(hdlr->manager, "Access Fault: Accessing memory that is out of bounds.");
         break;
     case _INTR_MEMORY_SEG_FAULT:
         _asp_manager_error(hdlr->manager, "Segmentation fault: Memory offset is out the page's range!");
@@ -55,6 +55,9 @@ void _asp_handle_interrupt(_Asp_Intr_Hdlr *hdlr, aQword interrupt_number, aQword
         break;
     case _INTR_EXIT:
         _asp_manager_exit(hdlr->manager, core_id);
+        break;
+    case _INTR_READ_CHAR:
+        _asp_manager_IO_readChar(hdlr->manager, core_id);
         break;
     }
     _asp_mutex_unlock(hdlr->lock);

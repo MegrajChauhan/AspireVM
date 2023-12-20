@@ -576,9 +576,7 @@ void *_asp_start_execution(void *cpu)
         {
             if ((_asp_inst_read(core->imem, *pc, ir)) == aFalse)
             {
-                // we currently don't have any error handling for the memory generated errors
-                // we will generate error
-                _asp_handle_interrupt(core->hdlr, _INTR_STOP_CPU, core->cid); // we are just telling the manager to stop the VM
+                _asp_handle_interrupt(core->hdlr, core->imem->err, core->cid); // we are just telling the manager to stop the VM
             }
             else
             {

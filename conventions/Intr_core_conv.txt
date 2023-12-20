@@ -1,1 +1,5 @@
-When adding a new core, the starting address of execution for the new core is taken from the interrupting core's Ax1 register. 
+When adding a new core, the starting address of execution for the new core is taken from the interrupting core's Ax1 register.
+
+EXIT interrupt: Return val in the Aa register of the interrupting core.
+READ_CHAR interrupt: Aa contains the destination address for the read byte. In case the read fails, the VM shows an error and exits.
+READ_STR interrupt: Aa contains the starting address[In case of a string, one address actually holds 8 bytes] and Ab contains the length of the string in bytes.

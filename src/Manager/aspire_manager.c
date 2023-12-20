@@ -263,3 +263,42 @@ void _asp_manager_exit(_Asp_Manager *manager, aQword core_id)
     _asp_mutex_unlock(manager->lock);
     _asp_InBuf_destroy();
 }
+
+void _asp_manager_IO_readChar(_Asp_Manager *manager, aQword core_id)
+{
+    // reads a character from the user
+    _asp_mutex_lock(manager->lock);
+    register aByte _in;
+    if (_asp_In_readChar(&_in) == aFalse)
+    {
+        manager->cpu[core_id]->running = aFalse; // stop for good purposes
+        _asp_mutex_unlock(manager->lock);
+        _asp_manager_error(manager, "IO error: Unable or failed to read a byte");
+        return;
+    }
+    // the read was successful
+    if (_asp_memory_write(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], _in) == aFalse) // we are wasting 7 bytes here[WHY?!!!]
+    {
+        manager->cpu[core_id]->running = aFalse;
+        _asp_mutex_unlock(manager->lock);
+        _asp_manager_error(manager, "Internal Error: Failed to access memory"); // the error could have been anything and yet we are saying its the VM's fault
+        return;
+    }
+    _asp_mutex_unlock(manager->lock); // everything worked
+}
+
+void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id)
+{
+    _asp_mutex_lock(manager->lock);
+    register aSize_t len = manager->cpu[core_id]->_asp_registers[Ab];
+    register aByte _in[len]; // the length of the string in Ab[length includes the space for the terminating NULL character as well]
+    if (_asp_In_readStr(_in, len) == aFalse)
+    {
+        manager->cpu[core_id]->running = aFalse; // stop for good purposes
+        _asp_mutex_unlock(manager->lock);
+        _asp_manager_error(manager, "IO error: Unable or failed to read any byte");
+        return;
+    }
+    // if (_asp_memory_write_chunk(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], &_in, ))
+    _asp_mutex_unlock(manager->lock); // everything worked
+}
