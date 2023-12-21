@@ -1,0 +1,63 @@
+NOTE: THIS IS NOT FINAL.
+
+This defines how an input file that contains the program to execute should be structured.
+The input files can be in hex or binary but not in octal or decimal.
+To tell Aspire if the input file is in hex or binary, the following can be used.
+
+.format_binary -> for binary
+.format_hex -> for hex
+
+One of the above two lines should be at the beginning before anything else otherwise the binary format will be taken as the default.
+
+Anything starting with a '.' is a metadata or an attribute for the input file that tells Aspire something about the file. Now the actual program can start.
+As the data and instruction are kept in different memory spaces, we will need to tell Aspire which blocks of numbers go into which memory.
+For this, the following can be used:
+
+.block_data[
+   Data goes here
+]
+
+.block_program[
+    The instructions go here
+]
+
+Here, right before '[' in both cases, there must not be a space or tab or any other character. If there is no data for the program, the ".Null_block" can be used as:
+
+.block_data[
+    .Null_block
+]
+
+Doing this will initialize the data memory to be only 1 page long such that the program can put some values in it. The instruction block cannot be Null.
+Here is a sample program for the given format[Note that every value given is garbage]:
+"
+.format_binary
+
+.block_data[
+    00001101 00010111 00001111
+]
+
+.block_program[
+    000011111 10100011
+]
+"
+
+Also note that no metadata can be used inside the blocks except for .Null_block . For binary, 8 bits per group and for hexadecimal 2 characters per group.
+
+Some problems can be seen here.
+1. What if the program wants to start with a lot more memory?
+2. What if the program wants to put instructions and data starting from an address X and not from 0?
+3. What if the program doesn't want data memory at all and works with instruction only?
+
+To answer these questions:
+1. The program may ask for more memory while it is running through the use of interrupts. But if the program wants to start with a larger memory than it can use the
+   ".data_memsize <size>" This affects only the data memory as the instruction memory is not accessible to the program directly. Aspire will initialize the data memory to whatever
+   "size" is. Note that size here represents the number of addresses and not number of bytes as the data memory works with 8 bytes per address. If, while reading the 
+   data block, the size mentioned by "size" is found to be insuffcient, a warning will be issued and Aspire will adjust automatically.
+   Similarly, the program may use the ".data_mempages <num_of_pages>" to state the number of pages to start with. Consequently, both ".data_mempages" and ".data_memsize"
+   may not be used together. If ".data_mempages" is used, the ".data_memsize" must not be and vice versa.
+
+2. The instructions must start from 0 and not from any other address. Its not like its impossible it is just not efficient use of the memory. For data as well, the same can
+   be applied. But even though the program still wants to put data away from address 0 ".data_addr_set <offset>" can be used. The data will be put starting from the offset.
+
+3. If the program doesn't want any memory then it can use ".data_nomem". This will tell Aspire to not initialize the memory at all. Please note that doing so hampers the program's
+   ability to use memory at all.
