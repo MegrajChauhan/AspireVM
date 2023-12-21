@@ -75,13 +75,27 @@ _asp_read_bytes: ;; used to read strings of whose we know the size of
 ; read_error:
 ;      ret
  
- _asp_write_byte:
+ _asp_write_byte: ;; for printing bytes
      ; rdi contains the character to print
      mov rax, 1       ;; write syscall
      mov rsi, rdi     ;; the character to print
      mov rdi, _STDOUT ;; the standard output
-     mov dx, 1        ;; just 1 character
+     mov rdx, 1        ;; just 1 character
+     syscall
      ret              ;; should return 1 on success
 
-_asp_Write_bytes:
+_asp_write_bytes: ;; for printing strings
      ; rdi contains the characters to print
+     ; rsi contains the number of characters to print
+     mov rax, 1       ;; write syscall
+     mov rdx, rsi     ;; the number of characters to print
+     mov rsi, rdi     ;; the characters to print
+     mov rdi, _STDOUT ;; output
+     syscall
+     ret
+
+_asp_write_string: ;; prints until a terminating character is encountered
+    ; rdi contains the buffer
+    ; the length doesn't really matter here as we will print until '\0'
+    mov r8, rdi ;; save the buffer
+    

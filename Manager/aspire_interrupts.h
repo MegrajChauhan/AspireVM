@@ -34,6 +34,9 @@ enum
     _INTR_READ_CHAR,
     _INTR_READ_STR,
 
+    _INTR_WRITE_CHAR,
+    _INTR_WRITE_STR,
+
     _INTR_STOP_CPU = 256, // this interrupt is sent by the host core which has encountered the halt instruction[shutsdown the core]
     _INTR_DIVIDE_BY_ZERO,
     _INTR_RES,

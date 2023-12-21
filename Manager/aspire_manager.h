@@ -45,7 +45,7 @@ typedef struct _Asp_Manager _Asp_Manager;
 #include "aspire_interrupt_handler.h"
 #include "../Components/CPU/aspire_cpu.h"
 
-#include "aspire_input.h"
+#include "aspire_io.h"
 
 struct _Asp_Manager
 {
@@ -110,5 +110,9 @@ void _asp_manager_exit(_Asp_Manager *manager, aQword core_id);
 void _asp_manager_IO_readChar(_Asp_Manager *manager, aQword core_id);
 
 void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id);
+
+void _asp_manager_IO_writeChar(_Asp_Manager *manager, aQword core_id);
+
+void _asp_manager_IO_writeString(_Asp_Manager *manager, aQword core_id);
 
 #endif

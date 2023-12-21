@@ -3,3 +3,6 @@ When adding a new core, the starting address of execution for the new core is ta
 EXIT interrupt: Return val in the Aa register of the interrupting core.
 READ_CHAR interrupt: Aa contains the destination address for the read byte. In case the read fails, the VM shows an error and exits.
 READ_STR interrupt: Aa contains the starting address[In case of a string, one address actually holds 8 bytes] and Ab contains the length of the string in bytes.
+
+WRITE_CHAR: Aa contains the character.
+WRITE_STR: Aa contains the starting address of the string, Ab contains the length of the string

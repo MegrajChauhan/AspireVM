@@ -1,4 +1,4 @@
-#include "../../Manager/aspire_input.h"
+#include "../../Manager/aspire_io.h"
 
 aBool _asp_InBuf_init()
 {

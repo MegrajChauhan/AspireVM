@@ -309,3 +309,39 @@ void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id)
     }
     _asp_mutex_unlock(manager->lock); // everything worked
 }
+
+void _asp_manager_IO_writeChar(_Asp_Manager *manager, aQword core_id)
+{
+    _asp_mutex_lock(manager->lock);
+    if (_asp_write_byte(&manager->cpu[core_id]->_asp_registers[Aa]) != 1)
+    {
+        // there has been an error
+        fprintf(stderr, "IO error: Unable to print a byte.\n");
+        manager->stop_vm = aTrue;
+        manager->return_val = -1;
+        _asp_cond_signal(manager->cond);
+    }
+    _asp_mutex_unlock(manager->lock); // everything went smoothly
+}
+
+void _asp_manager_IO_writeString(_Asp_Manager *manager, aQword core_id)
+{
+    _asp_mutex_lock(manager->lock);
+    register aSize_t len = manager->cpu[core_id]->_asp_registers[Ab];
+    register aByte _bytes[len];
+    if (_asp_memory_read_bytes(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], _bytes, len) == aFalse)
+    {
+        // there has been an error
+        fprintf(stderr, "IO error: Unable to print bytes.\n");
+        manager->stop_vm = aTrue;
+        manager->return_val = -1;
+        _asp_cond_signal(manager->cond);
+    }else{
+        // we now print it
+        if (_asp_write_bytes(_bytes, len) != len)
+        {
+            
+        }
+    }
+    _asp_mutex_unlock(manager->lock); // everything went smoothly
+}

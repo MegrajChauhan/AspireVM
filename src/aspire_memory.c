@@ -346,6 +346,45 @@ aBool _asp_memory_read_chunk(_Asp_Memory *memory, aAddr_t address, aSize_t lengt
     return aTrue;
 }
 
+aBool _asp_memory_read_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t bytes, aSize_t length)
+{
+    // here, we just have to do the opposite of write bytes, we read the whole q's and then break them into bytes
+    register aSize_t _num_of_q = length / 8;
+    register aSize_t _rem_q = length % 8;
+    register aSize_t _len = _num_of_q + (_rem_q > 0) ? 1 : 0;
+    register aQword _qs[_len];
+    if (_asp_memory_read_chunk(memory, address, _len, _qs) == aFalse)
+        return aFalse;
+    // else we just need to break these _qs and store them in bytes
+    for (aSize_t i = 0; i < _num_of_q; i++)
+    {
+        bytes[0] = (_qs[i] >> 56);
+        bytes[1] = (_qs[i] >> 48) & 255;
+        bytes[2] = (_qs[i] >> 40) & 255;
+        bytes[3] = (_qs[i] >> 32) & 255;
+        bytes[4] = (_qs[i] >> 24) & 255;
+        bytes[5] = (_qs[i] >> 16) & 255;
+        bytes[6] = (_qs[i] >> 8) & 255;
+        bytes[7] = (_qs[i]) & 255;
+        bytes += 8;
+    }
+    if (_rem_q > 0)
+    {
+        // there is this extra q we need to break
+        // _qs[_num_of_q] = (_qs[_num_of_q]) | *bytes++;
+        *bytes = _qs[_num_of_q] >> 56;
+        *bytes++;
+        register int temp = 48;
+        for (aSize_t i = 1; i < _rem_q; i++)
+        {
+            *bytes = (_qs[_num_of_q] >> temp) & 255;
+            temp -= 8;
+            bytes++;
+        }
+    }
+    return aTrue;
+}
+
 // we now have to free all of the memory allocated
 void _asp_free_memory(_Asp_Memory *memory)
 {

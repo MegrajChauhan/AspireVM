@@ -101,6 +101,8 @@ aBool _asp_memory_read(_Asp_Memory *memory, aAddr_t address, aQptr_t _store_in);
 
 aBool _asp_memory_read_chunk(_Asp_Memory *memory, aAddr_t address, aSize_t length, aQptr_t _store_in);
 
+aBool _asp_memory_read_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t bytes, aSize_t length);
+
 void _asp_free_memory(_Asp_Memory *memory);
 
 // aStr_t _asp_get_mem_err(_Asp_Mem_Err err);
