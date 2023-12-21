@@ -18,6 +18,7 @@ global _asp_set_buf_limit
 
 global _asp_write_byte
 global _asp_Write_bytes
+global _asp_write_string
 
 ; global _asp_read_until_or_filled
 
@@ -98,4 +99,18 @@ _asp_write_string: ;; prints until a terminating character is encountered
     ; rdi contains the buffer
     ; the length doesn't really matter here as we will print until '\0'
     mov r8, rdi ;; save the buffer
-    
+print_loop:
+    cmp [rdi], 0         ;; is the current character a terminating character
+    je success           ;; everything was a success
+    call _asp_write_byte ;; print the byte
+    cmp rax, 1           ;; did the print work?
+    jne error            ;; if not error
+    inc r8               ;; the next character
+    mov rdi, r8          ;; restore buffer
+    jmp print_loop       ;; print the next character
+error:
+    mov rax, 1
+    ret
+success:
+    mov rax, 0
+    ret

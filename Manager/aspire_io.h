@@ -23,6 +23,7 @@ extern int _asp_read_until(aBptr_t buffer, char until);
 
 extern int _asp_write_byte(aBptr_t byte);
 extern int _asp_write_bytes(aBptr_t buffer, aSize_t len);
+extern int _asp_write_string(aBptr_t buffer);
 
 // static aBool _asp_InBuf_read_until_newline()
 // {4142434445464748

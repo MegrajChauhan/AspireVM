@@ -62,6 +62,12 @@ void _asp_handle_interrupt(_Asp_Intr_Hdlr *hdlr, aQword interrupt_number, aQword
     case _INTR_READ_STR:
         _asp_manager_IO_readString(hdlr->manager, core_id);
         break;
+    case _INTR_WRITE_CHAR:
+        _asp_manager_IO_writeChar(hdlr->manager, core_id);
+        break;
+    case _INTR_WRITE_STR:
+        _asp_manager_IO_writeString(hdlr->manager, core_id);
+        break;
     }
     _asp_mutex_unlock(hdlr->lock);
 }
