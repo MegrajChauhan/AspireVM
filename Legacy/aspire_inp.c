@@ -27,32 +27,38 @@ aBool _asp_read_input_file(acStr_t _file_path, aQptr_t _data, aQptr_t instrs, aS
 
 _Asp_Input_File *_asp_lex_input_file(acStr_t _file_contents, aSize_t _len)
 {
-    register _Asp_Input_File *inp = (_Asp_Input_File *)malloc(sizeof(_Asp_Input_File));
+    register _Asp_Lexer *inp = (_Asp_Lexer *)malloc(sizeof(_Asp_Lexer));
     if (inp == NULL)
         return NULL;
-    inp->attributes.format_binary = aTrue; // binary by default
-    register aSize_t curr = 0;
-    register char *ptr = _file_contents;
-    while (curr < _len)
-    {
-        if (*ptr == ' ' || *ptr == '\n' || *ptr == '\t')
-        {
-            // ignore all whitespaces
-            while (curr < _len && (*ptr == ' ' || *ptr == '\n' || *ptr == '\t'))
-            {
-                ptr++;
-                curr++;
-            }
-        }
-        else
-        {
-            // everything else is of interest here
-            if (*ptr == '.')
-            {
-                // an attribute
-                // we have to figure out what it is
-                char temp[15]; // at most the attributes are only 
-            }
-        }
-    }
+    inp->file.attributes.format_binary = aTrue; // binary by default
+    // while (curr < _len)
+    // {
+    //     if (*ptr == ' ' || *ptr == '\n' || *ptr == '\t')
+    //     {
+    //         // ignore all whitespaces
+    //         while (curr < _len && (*ptr == ' ' || *ptr == '\n' || *ptr == '\t'))
+    //         {
+    //             ptr++;
+    //             curr++;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         // everything else is of interest here
+    //         if (*ptr == '.')
+    //         {
+    //             // an attribute
+    //             // we have to figure out what it is
+    //             ptr++;
+    //             _len++;
+    //             char temp[15]; // at most the attributes are only 15 characters long
+    //             int i = 0;
+    //             while(*ptr != ' ')
+    //             {
+    //                 // read until a space
+                    
+    //             }
+    //         }
+    //     }
+    // }
 }

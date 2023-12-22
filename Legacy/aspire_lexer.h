@@ -1,5 +1,5 @@
-#ifndef _ASP_INP_
-#define _ASP_INP_
+#ifndef _ASP_LEXER_
+#define _ASP_LEXER_
 
 #include "../../Utils/aspire_typedefs.h"
 #include "../../Utils/aspire_helpers.h"
@@ -19,7 +19,7 @@ static aSize_t _asp_retrieve_file_size(FILE *file)
 }
 
 typedef struct _Asp_Input_File_Attr _Asp_Input_File_Attr;
-typedef struct _Asp_Input_File _Asp_Input_File;
+typedef struct _Asp_Lexer _Asp_Lexer;
 
 struct _Asp_Input_File_Attr
 {
@@ -31,17 +31,18 @@ struct _Asp_Input_File_Attr
     aBool _data_nomem : 1;                 // does the program want any memory?
 };
 
-struct _Asp_Input_File
+struct _Asp_Lexer
 {
-    // we don't really care about the filename
-    _Asp_Input_File_Attr attributes; // the attributes of the input file
-    aSize_t _data_size;              // increased accordingly while reading the data
+    _Asp_Input_File_Attr attributes;  // the file's attributes
+    acStr_t _file_contents;           // the file contents
+    aSize_t _file_len;                // file contents length
+    char *curr;                       // the current character
+    aSize_t _prg_mentioned_data_size; // if the program specifies data memory size then the value will be here
+    aSize_t _prg_mentioned_pg_count;  // if the program specifies the number of pages to begin with, it will be here
+    aSize_t _data_size;
     aSize_t _inst_size;
-    aBptr_t _data_st, _data_ed, _inst_st, _inst_ed;
+    aQptr_t data;
+    aQptr_t instrs;
 };
-
-_Asp_Input_File *_asp_lex_input_file(acStr_t _file_contents, aSize_t _len);
-
-aBool _asp_read_input_file(acStr_t _file_path, aQptr_t _data, aQptr_t instrs, aSize_t *_data_len, aSize_t *_inst_len);
 
 #endif

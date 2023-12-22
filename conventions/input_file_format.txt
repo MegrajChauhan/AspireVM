@@ -63,3 +63,11 @@ To answer these questions:
    ability to use memory at all.
 
 UPDATE: Null_block has been updated to ".Null_dblock" and is written outside the blocks. ".block_data" and ".block_program" do not use "." in front anymore.
+--------------------------------------------------- Updated One ------------------------------------------------------------------------------------------------
+As a very lazy person, here is what has been decided. Here is a sample program:
+"00001010100101001110101010101000101010101010100000001011111111101010101010101011010000001111110101......
+;
+0111111100010111010001100111000010101101000010100100010011110111010...."
+
+The above block[above ';'] are the instructions and the below ones are the data. There must not be space but newlines are allowed. If there is no data, there must still be
+a ';' after the instructions.
