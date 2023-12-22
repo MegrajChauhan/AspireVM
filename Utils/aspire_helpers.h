@@ -80,9 +80,9 @@ aStr_t _asp_concat(acStr_t str1, acStr_t str2);
 // utility functions and macros go here
 
 #define _ASP_MAKE_NAME(base) _ASP_STRINGIFY(_ASP_CONCAT(base, __COUNTER__))
-#define _ASP_PTR_DISTANCE(from, to) (rsize_t)((void *)from - (void *)to) // what is the distance between from and to
+#define _ASP_PTR_DISTANCE(from, to) (aSize_t)((void *)from - (void *)to) // what is the distance between from and to
 
-#define _ASP_SIZE_OF(field) (rsize_t)(sizeof(field))
+#define _ASP_SIZE_OF(field) (aSize_t)(sizeof(field))
 
 #define _ASP_DEFINE_FUNC_PTR(ret_type, name, ...) typedef ret_type (*name)(__VA_ARGS__)
 
