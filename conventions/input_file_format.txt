@@ -61,3 +61,5 @@ To answer these questions:
 
 3. If the program doesn't want any memory then it can use ".data_nomem". This will tell Aspire to not initialize the memory at all. Please note that doing so hampers the program's
    ability to use memory at all.
+
+UPDATE: Null_block has been updated to ".Null_dblock" and is written outside the blocks. ".block_data" and ".block_program" do not use "." in front anymore.
