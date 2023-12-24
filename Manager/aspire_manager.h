@@ -46,6 +46,8 @@ typedef struct _Asp_Manager _Asp_Manager;
 #include "../Components/CPU/aspire_cpu.h"
 
 #include "aspire_io.h"
+#include "input/aspire_read_input.h"
+#include <unistd.h>
 
 struct _Asp_Manager
 {
@@ -69,8 +71,8 @@ _Asp_Manager *_asp_manager_init_manager(); // By default, start with 1 core
   The _asp_run_vm will be the actual entry point.
 */
 
-// aBool _asp_start_VM();  // starts the VM[should be provided with the input file name but for now we will just take the direct instructions as input]
-aBool _asp_manager_init_VM(_Asp_Manager *manager, aQptr_t instructions, aSize_t ilen, aQptr_t data, aSize_t dlen);
+aBool _asp_manager_init_VM(_Asp_Manager *manager, acStr_t _file_path);  // starts the VM[should be provided with the input file name but for now we will just take the direct instructions as input]
+// aBool _asp_manager_init_VM(_Asp_Manager *manager, aQptr_t instructions, aSize_t ilen, aQptr_t data, aSize_t dlen);
 
 aBool _asp_manager_boot_core(_Asp_Manager *manager, aSize_t core_number, aQword start_executing_from);
 

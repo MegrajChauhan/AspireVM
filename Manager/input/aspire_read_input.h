@@ -10,9 +10,9 @@ typedef struct _Asp_Lexer _Asp_Lexer;
 
 struct _Asp_Lexer
 {
-    acStr_t _file_contents; // the file contents
-    aSize_t _file_len;      // file contents length
-    char *curr;             // the current character
+    char* _file_contents; // the file contents
+    aSize_t _file_len;    // file contents length
+    char *curr;           // the current character
     aSize_t _data_size;
     aSize_t _inst_size;
     aQptr_t data;
@@ -22,8 +22,8 @@ struct _Asp_Lexer
 
 static aSize_t _asp_retrieve_file_size(FILE *file)
 {
-    register aSize_t len = 0;
-    if (fseek(file, SEEK_END, SEEK_CUR) != 0)
+    aSize_t len = 0;
+    if (fseek(file, SEEK_SET, SEEK_END) != 0)
     {
         return 0; // this tells the caller that the file is empty when in fact there was problem calculating the size
     }
@@ -36,7 +36,7 @@ aSize_t _asp_get_inst_len(_Asp_Lexer *lexer);
 
 aSize_t _asp_get_data_len(_Asp_Lexer *lexer);
 
-_Asp_Lexer *_asp_read_file(FILE *_file_path, acStr_t _file_contents);
+_Asp_Lexer *_asp_read_file(acStr_t _file_path);
 
 void _asp_read_instructions(_Asp_Lexer *lexer);
 

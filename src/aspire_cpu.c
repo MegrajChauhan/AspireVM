@@ -533,6 +533,13 @@ _Asp_CPU *_asp_start_cpu(_Asp_Memory *mem, _Asp_Inst_Mem *imem, _Asp_Intr_Hdlr *
         free(cpu);
         return NULL;
     }
+    cpu->cond = _asp_cond_init(); // this is needed by the manager
+    if (cpu->cond == NULL)
+    {
+        _asp_mutex_destroy(cpu->lock);
+        free(cpu);
+        return NULL;
+    }
     cpu->pc = 0; // start from 0
     cpu->stack = (aQptr_t)malloc(sizeof(aQword) * _ASP_STACK_SIZE);
     if (cpu->stack == NULL)
@@ -548,10 +555,8 @@ void _asp_stop_cpu(_Asp_CPU *cpu)
 {
     if (cpu == NULL)
         return;
-    if (cpu->cond != NULL)
-        _asp_cond_destroy(cpu->cond);
-    if (cpu->lock != NULL)
-        _asp_mutex_destroy(cpu->lock);
+    _asp_cond_destroy(cpu->cond);
+    _asp_mutex_destroy(cpu->lock);
     if (cpu->stack != NULL)
         free(cpu->stack);
     // other things can clean themselves up

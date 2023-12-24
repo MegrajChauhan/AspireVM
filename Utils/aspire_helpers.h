@@ -68,11 +68,11 @@ SOFTWARE.
         << 8) |                                                                     \
     *(ptr++))
 */
-aStr_t _asp_concat(acStr_t str1, acStr_t str2);
+// aStr_t _asp_concat(acStr_t str1, acStr_t str2);
 
 #define _stringify(x) #x
 #define _glued(x, y) x##y
-#define _toggle(x) (~x) >> 63
+#define _toggle(x) (~x) & 1
 #define _ASP_STRINGIFY(to_str) _stringify(to_str)
 #define _ASP_CONCAT(x, y) _glued(x, y)
 #define _ASP_TOGGLE(x) _toggle(x) // toggle a boolean value
@@ -82,7 +82,7 @@ aStr_t _asp_concat(acStr_t str1, acStr_t str2);
 #define _ASP_MAKE_NAME(base) _ASP_STRINGIFY(_ASP_CONCAT(base, __COUNTER__))
 #define _ASP_PTR_DISTANCE(from, to) (aSize_t)((void *)from - (void *)to) // what is the distance between from and to
 
-#define _ASP_SIZE_OF(field) (aSize_t)(sizeof(field))
+// #define _ASP_SIZE_OF(field) (aSize_t)(sizeof(field))
 
 #define _ASP_DEFINE_FUNC_PTR(ret_type, name, ...) typedef ret_type (*name)(__VA_ARGS__)
 

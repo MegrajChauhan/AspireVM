@@ -31,49 +31,50 @@ _Asp_Memory *_asp_memory_init(aSize_t number_of_pages)
 {
     // allocate the memory
     _Asp_Memory *memory = (_Asp_Memory *)malloc(sizeof(_Asp_Memory));
-
     if (memory == NULL)       // was allocation successfull?
         return NULL;          // it was not
     if (number_of_pages == 0) // if the number of pages is given 0, then we make it 1.
         (memory)->page_count = 1;
     else // else we make it so
         (memory)->page_count = number_of_pages;
-
     // allocate the array of pointers for the pages
     (memory)->pages = (_Asp_Mem_page **)malloc(sizeof(_Asp_Mem_page *) * (memory)->page_count);
     if ((memory)->pages == NULL) // was it successfull?
         goto failure;            // it was not :(
-
     // if the number of pages is 1 then instead of wasting the time on initializing the loops, we will do it seperately once
     if ((memory)->page_count == 1)
     {
         // allocate the page
         (memory)->pages[0] = (_Asp_Mem_page *)malloc(sizeof(_Asp_Mem_page));
-
         if ((memory)->pages[0] == NULL) // was the page allocated?
             goto failure;               // it was not :(
-
         // now allocate the bytes that the page will hold on to
         // we are allocating all of the bytes directly instead of using sbrk or similar functionality
         // to avoid cases when the OS might allocate the memory that should belong to the page to something else
-        (memory)->pages[0]->addresses = (aQptr_t)malloc(_ASP_PAGE_SIZE);
+        (memory)->pages[0]->addresses = (aQptr_t)malloc(_ASP_PAGE_SIZE * 8);
         if ((memory)->pages[0]->addresses == NULL) // was allocation successfull?
             goto failure;                          // it was not :(
-
         // everything was successful
-        return memory;
     }
-
-    // we have a lot of pages to allocate
-    for (aSize_t i = 0; i < number_of_pages; i++)
+    else
     {
-        // same as for 1 page
-        (memory)->pages[i] = (_Asp_Mem_page *)malloc(sizeof(_Asp_Mem_page));
-        if ((memory)->pages[i] == NULL)
-            goto failure;
-        (memory)->pages[i]->addresses = (aQptr_t)malloc(_ASP_PAGE_SIZE);
-        if ((memory)->pages[i]->addresses == NULL)
-            goto failure;
+        // we have a lot of pages to allocate
+        for (aSize_t i = 0; i < number_of_pages; i++)
+        {
+            // same as for 1 page
+            (memory)->pages[i] = (_Asp_Mem_page *)malloc(sizeof(_Asp_Mem_page));
+            if ((memory)->pages[i] == NULL)
+                goto failure;
+            (memory)->pages[i]->addresses = (aQptr_t)malloc(_ASP_PAGE_SIZE * 8);
+            if ((memory)->pages[i]->addresses == NULL)
+                goto failure;
+        }
+    }
+    memory->lock = _asp_mutex_init();
+    if (memory->lock == NULL)
+    {
+        _asp_free_memory(memory);
+        return NULL;
     }
     return memory; // all good :)
 failure:
@@ -214,7 +215,7 @@ aBool _asp_memory_write_chunk(_Asp_Memory *memory, aAddr_t address, aQptr_t data
                 taddress++;
                 data++;
             }
-            taddress = &(memory->pages[(page_num++)]->addresses); // goto the next page
+            taddress = (memory->pages[(page_num++)]->addresses); // goto the next page
         }
         if (_remaining_addresses > 0)
         {
@@ -237,7 +238,7 @@ aBool _asp_memory_write_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t byte
     register aSize_t _num_of_q = length / 8;
     register aSize_t _rem_q = length % 8;
     register aSize_t _len = _num_of_q + (_rem_q > 0) ? 1 : 0;
-    register aQword _qs[_len]; // the grouped q's
+    aQword _qs[_len]; // the grouped q's
     for (aSize_t i = 0; i < _num_of_q; i++)
     {
         _qs[i] = (_qs[i]) | bytes[0];
@@ -306,7 +307,7 @@ aBool _asp_memory_read_chunk(_Asp_Memory *memory, aAddr_t address, aSize_t lengt
         // the read is not multipage
         for (aSize_t i = 0; i < length; i++)
         {
-            _store_in[i] = data;
+            _store_in[i] = *data;
             data++;
         }
     }
@@ -329,7 +330,7 @@ aBool _asp_memory_read_chunk(_Asp_Memory *memory, aAddr_t address, aSize_t lengt
                 _store_in++;
                 data++;
             }
-            data = &(memory->pages[(page_num++)]->addresses); // goto the next page
+            data = (memory->pages[(page_num++)]->addresses); // goto the next page
         }
         if (_remaining_addresses > 0)
         {
@@ -352,7 +353,7 @@ aBool _asp_memory_read_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t bytes
     register aSize_t _num_of_q = length / 8;
     register aSize_t _rem_q = length % 8;
     register aSize_t _len = _num_of_q + (_rem_q > 0) ? 1 : 0;
-    register aQword _qs[_len];
+    aQword _qs[_len];
     if (_asp_memory_read_chunk(memory, address, _len, _qs) == aFalse)
         return aFalse;
     // else we just need to break these _qs and store them in bytes
@@ -373,7 +374,7 @@ aBool _asp_memory_read_bytes(_Asp_Memory *memory, aAddr_t address, aBptr_t bytes
         // there is this extra q we need to break
         // _qs[_num_of_q] = (_qs[_num_of_q]) | *bytes++;
         *bytes = _qs[_num_of_q] >> 56;
-        *bytes++;
+        bytes++;
         register int temp = 48;
         for (aSize_t i = 1; i < _rem_q; i++)
         {
@@ -407,10 +408,9 @@ void _asp_free_memory(_Asp_Memory *memory)
                 // free the page
                 free(memory->pages[i]);
             }
-            // free the pages pointer
         }
-        if (memory->lock != NULL)
-            _asp_mutex_destroy(memory->lock);
+        _asp_mutex_destroy(memory->lock);
+        // free the pages pointer
         free(memory->pages);
     }
     free(memory);

@@ -15,7 +15,7 @@ _Asp_Inst_Mem *_asp_inst_mem_init(aSize_t numofpages)
         free(mem);
         return NULL;
     }
-    if (numofpages == 1 || numofpages == 0)
+    if (numofpages == 1)
     {
         // doing this is better than initializing a loop when it is just one
         // get the memory
@@ -26,7 +26,7 @@ _Asp_Inst_Mem *_asp_inst_mem_init(aSize_t numofpages)
             return NULL;
         }
         // get the array
-        mem->pages[0]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE);
+        mem->pages[0]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE * 8);
         if (mem->pages[0]->instmem == NULL)
         {
             _asp_inst_mem_free(mem);
@@ -34,25 +34,35 @@ _Asp_Inst_Mem *_asp_inst_mem_init(aSize_t numofpages)
         }
         goto ret;
     }
-    for (aSize_t i = 0; i < numofpages; i++)
+    else
     {
-        // we do the same as we did with one page but this time we do it for many pages
-        mem->pages[i] = (_Asp_Inst_Page *)malloc(sizeof(_Asp_Inst_Page));
-        if (mem->pages[i] == NULL)
+
+        for (aSize_t i = 0; i < numofpages; i++)
         {
-            _asp_inst_mem_free(mem);
-            return NULL;
+            // we do the same as we did with one page but this time we do it for many pages
+            mem->pages[i] = (_Asp_Inst_Page *)malloc(sizeof(_Asp_Inst_Page));
+            if (mem->pages[i] == NULL)
+            {
+                _asp_inst_mem_free(mem);
+                return NULL;
+            }
+            // get the array
+            mem->pages[i]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE * 8);
+            if (mem->pages[i]->instmem == NULL)
+            {
+                _asp_inst_mem_free(mem);
+                return NULL;
+            }
         }
-        // get the array
-        mem->pages[i]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE);
-        if (mem->pages[i]->instmem == NULL)
-        {
-            _asp_inst_mem_free(mem);
-            return NULL;
-        }
+        goto ret;
     }
-    goto ret;
 ret:
+    mem->lock = _asp_mutex_init();
+    if (mem->lock == NULL)
+    {
+        _asp_inst_mem_free(mem);
+        return NULL;
+    }
     return mem; // everything was done successfully
 }
 
@@ -70,7 +80,7 @@ aBool _asp_inst_mem_get_new_page(_Asp_Inst_Mem *mem)
     if (mem->pages[p] == NULL)
         return aFalse;
     // get the array
-    mem->pages[p]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE);
+    mem->pages[p]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE * 8);
     if (mem->pages[p]->instmem == NULL)
         return aFalse;
     return aTrue;
@@ -91,7 +101,7 @@ aBool _asp_inst_mem_get_pages(_Asp_Inst_Mem *mem, aSize_t num_of_pages)
         if (mem->pages[p] == NULL)
             return aFalse;
         // get the array
-        mem->pages[p]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE);
+        mem->pages[p]->instmem = (aQptr_t)malloc(_ASP_INST_PAGE_SIZE * 8);
         if (mem->pages[p]->instmem == NULL)
             return aFalse;
     }
@@ -129,6 +139,7 @@ void _asp_inst_mem_free(_Asp_Inst_Mem *mem)
             free(mem->pages);
         }
     }
+    _asp_mutex_destroy(mem->lock);
     free(mem);
 }
 
@@ -156,26 +167,49 @@ void _asp_inst_mem_free(_Asp_Inst_Mem *mem)
 
 aBool _asp_inst_mem_write(_Asp_Inst_Mem *mem, aQptr_t newinst, aSize_t size, aAddr_t addr)
 {
-    // we are sent the address that the CPU thinks it is on but we have to calculate the address ourselves
-    register aQword offset = addr % _ASP_INST_PAGE_SIZE;   // get the offset
-    register aQword page_num = addr / _ASP_INST_PAGE_SIZE; // get the page number
-    // the offset won't be larger than needed but we have to check for page num
-    if (mem->numofpages <= page_num)
-    {
-        mem->err = _ASP_IERR_PAGE_FAULT;
-        return aFalse;
-    }
-    if ((addr + size) >= _ASP_INST_PAGE_SIZE)
-    {
-        mem->err = _ASP_IERR_SEG_FAULT;
-        return aFalse;
-    }
+    register aQword offset = 0; // writing to the instruction memory is done at the beginning and it is written from addr 0
+    register aQword page_num = 0;
+    register aBool _is_multi_page = !_ASP_CHECK_BOUNDS(size) ? aTrue : aFalse;
     register aQptr_t temp;
-    temp = mem->pages[page_num]->instmem;
-    for (aSize_t i = offset; i < size; i++)
+    temp = mem->pages[0]->instmem;
+    if (_is_multi_page == aFalse)
     {
-        temp[i] = (*newinst);
-        newinst++;
+        // the write is being requested in only one page
+        for (aSize_t i = 0; i < size; i++)
+        {
+            temp[i] = newinst[i];
+        }
+    }
+    else
+    {
+        register aSize_t _pgae_write_count = size / _ASP_PAGE_SIZE;    // this gives the number of page
+        register aSize_t _remaining_addresses = size % _ASP_PAGE_SIZE; // the remaining addresses
+        if (mem->numofpages <= (_pgae_write_count + (_remaining_addresses > 0 ? 1 : 0)))
+        {
+            // this is a page fault
+            mem->err = _ASP_IERR_PAGE_FAULT;
+            return aFalse;
+        }
+        for (aSize_t i = 0; i < _pgae_write_count; i++)
+        {
+            for (aSize_t j = 0; j < _ASP_PAGE_SIZE; j++)
+            {
+                *temp = *newinst;
+                temp++;
+                newinst++;
+            }
+            temp = (mem->pages[(page_num++)]->instmem); // goto the next page
+        }
+        if (_remaining_addresses > 0)
+        {
+            // taddress is pointing to this new page
+            for (aSize_t i = 0; i < _remaining_addresses; i++)
+            {
+                *temp = *newinst;
+                temp++;
+                newinst++;
+            }
+        }
     }
     return aTrue;
 }
@@ -185,12 +219,15 @@ aBool _asp_inst_read(_Asp_Inst_Mem *mem, aAddr_t addr, aQptr_t _store_in)
     register aQword offset = addr % _ASP_INST_PAGE_SIZE;   // get the offset
     register aQword page_num = addr / _ASP_INST_PAGE_SIZE; // get the page number
     // the offset won't be larger than needed but we have to check for page num
+    _asp_mutex_lock(mem->lock);
     if (mem->numofpages <= page_num)
     {
         mem->err = _ASP_IERR_PAGE_FAULT;
+        _asp_mutex_unlock(mem->lock);
         return aFalse;
     }
     *_store_in = mem->pages[page_num]->instmem[offset];
+    _asp_mutex_unlock(mem->lock);
     return aTrue;
 }
 

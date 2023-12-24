@@ -31,18 +31,18 @@ SOFTWARE.
 // 256KB of stack
 #define _ASP_STACK_SIZE 32768
 
-#define _ASP_CPU_ENDIAN "big-endian"
-#define _ASP_CPU_NAME "Aspire"
-#define _ASP_CPU_VERSION "0.0.0" // a newbie
-#define _ASP_CPU_BUS_LENGTH 64
-#define _ASP_INST_LENGTH 64 // a 64-bit CPU
+// #define _ASP_CPU_ENDIAN "big-endian"
+// #define _ASP_CPU_NAME "Aspire"
+// #define _ASP_CPU_VERSION "0.0.0" // a newbie
+// #define _ASP_CPU_BUS_LENGTH 64
+// #define _ASP_INST_LENGTH 64 // a 64-bit CPU
 
 #define _ASP_INST_PAGE_SIZE 131072
 #define _ASP_PAGE_SIZE 131072
 // #define _ASP_GET_FULL_ADDR(page, offset) (page << 24) | offset
 // #define _ASP_GET_PAGE_NUM(address) (address >> 24)               // Extract the page number from the address
-#define _ASP_GET_ADDRESS_INST(address) address & 131071          // Extract the actual address from the address part
-#define _ASP_GET_ADDRESS(address) address & 131071              // Extract the actual address from the address part
+// #define _ASP_GET_ADDRESS_INST(address) address & 131071          // Extract the actual address from the address part
+// #define _ASP_GET_ADDRESS(address) address & 131071              // Extract the actual address from the address part
 #define _ASP_CHECK_BOUNDS(address) ((address < _ASP_PAGE_SIZE)) // Check if the address is not out of bounds
 #define _ASP_CHECK_BOUNDS_INST(address) ((address < _ASP_INST_PAGE_SIZE)) // Check if the address is not out of bounds
 
@@ -88,12 +88,14 @@ SOFTWARE.
 #if defined(__cpluscplus)
 // the compiler is of C++
 #define _ASP_COMPILER_CPP 1
-#define _ASP_EXTRERN extrern "C"
+#define _ASP_EXTRERN extern "C"{
+#define _ASP_EXTERN_END }
 #elif defined(__GNUC__)
 // the compiler is gnuc
 #define _ASP_COMPILER_GNUC 1
 #define _ASP_COMP_VERSION __GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__
-#define _ASP_EXTERN extern
+#define _ASP_EXTERN
+#define _ASP_EXTERN_END 
 #endif
 
 #if defined(__OPTIMIZE__)
@@ -116,7 +118,7 @@ SOFTWARE.
 
 #endif
 
-#define _ASP_FMTPATTERN(fmt, arg) __attribute__((ext_format(fmt, arg)))
+// #define _ASP_FMTPATTERN(fmt, arg) __attribute__((ext_format(fmt, arg)))
 
 // for other operating systems, there is nothing yet
 

@@ -26,15 +26,12 @@ SOFTWARE.
 #include "../Manager/aspire_manager.h"
 #include <syscall.h>
 
-#define PROGRAM_LEN 10
-#define DATA_LEN 0
-
-int main()
+int main(int argc, char **argv)
 {
     // halt the cpu
-    aQword program[PROGRAM_LEN] = {
-        0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0b0000000100000000000000000000000000000000000000000000000000000000}; // the program
+    // aQword program[PROGRAM_LEN] = {
+    //     0x00, 0x00, 0x00, 0x00, 0x00,
+    //     0x00, 0x00, 0x00, 0x00, 0b0000000100000000000000000000000000000000000000000000000000000000}; // the program
 
     // // test multi-threading
     // aQword program2[100] = {
@@ -42,36 +39,38 @@ int main()
     //     0b00000010,
     //     0x00, 0x00, 0x00, 0x00, 0b0000000100000000000000000000000000000000000000000000000000000000
     // };
-
-    aQword *data = NULL;
-
     _Asp_Manager *manager = _asp_manager_init_manager();
     if (manager == NULL)
     {
-        printf("COuldn't start the manager.\n");
+        printf("Couldn't start the manager.\n");
         return 0;
     }
-    if (_asp_manager_init_VM(manager, program, PROGRAM_LEN, data, DATA_LEN) == aFalse)
+    // printf("Initialized\n");
+    if (_asp_manager_init_VM(manager, "program.txt") == aFalse)
     {
         printf("Couldn't initialize VM\n");
         _asp_manager_destroy_manager(manager);
         return 0;
     }
-    _Asp_Thread *manager_thread = _asp_thread_init();
-    if (manager_thread == NULL)
-    {
-        printf("COuldn't start execution\n");
-        _asp_manager_destroy_manager(manager);
-        return 0;
-    }
-    if (_asp_create_thread(manager_thread, _asp_manager_run_vm, manager) == aFalse)
-    {
-        printf("Couldn't start the VM\n");
-        _asp_manager_destroy_manager(manager);
-        _asp_thread_destroy(manager_thread);
-        return 0;
-    }
-    _asp_thread_join(manager_thread, NULL);
-    _asp_thread_destroy(manager_thread);
     _asp_manager_destroy_manager(manager);
+    return 0;
+    // _Asp_Thread *manager_thread = _asp_thread_init();
+    // if (manager_thread == NULL)
+    // {
+    //     printf("Couldn't start execution\n");
+    //     _asp_manager_destroy_manager(manager);
+    //     return 0;
+    // }
+    // if (_asp_create_thread(manager_thread, _asp_manager_run_vm, manager) == aFalse)
+    // {
+    //     printf("Couldn't start the VM\n");
+    //     _asp_manager_destroy_manager(manager);
+    //     _asp_thread_destroy(manager_thread);
+    //     return 0;
+    // }
+    // aSize_t ret = 0;
+    // _asp_thread_join(manager_thread, &ret);
+    // _asp_thread_destroy(manager_thread);
+    // _asp_manager_destroy_manager(manager);
+    // return ret;
 }

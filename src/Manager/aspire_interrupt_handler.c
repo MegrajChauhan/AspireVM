@@ -25,6 +25,7 @@ void _asp_handle_interrupt(_Asp_Intr_Hdlr *hdlr, aQword interrupt_number, aQword
     {
     case _INTR_STOP_CPU:
         _asp_manager_stop_core(hdlr->manager, core_id);
+        printf("Halt\n");
         break; // that core stops execution
     case _INTR_DIVIDE_BY_ZERO:
         _asp_manager_error(hdlr->manager, "Arithmetic Fault: Divide by zero");
@@ -57,6 +58,7 @@ void _asp_handle_interrupt(_Asp_Intr_Hdlr *hdlr, aQword interrupt_number, aQword
         _asp_manager_exit(hdlr->manager, core_id);
         break;
     case _INTR_READ_CHAR:
+        printf("Read char.\n");
         _asp_manager_IO_readChar(hdlr->manager, core_id);
         break;
     case _INTR_READ_STR:
@@ -76,8 +78,7 @@ void _asp_destroy_intr_hdlr(_Asp_Intr_Hdlr *hdlr)
 {
     if (hdlr == NULL)
         return;
-    if (hdlr->lock != NULL)
-        _asp_mutex_destroy(hdlr->lock);
+    _asp_mutex_destroy(hdlr->lock);
     // the manager frees itself
     hdlr->manager = NULL;
     free(hdlr);

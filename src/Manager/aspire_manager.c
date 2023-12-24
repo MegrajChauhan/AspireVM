@@ -51,10 +51,8 @@ void _asp_manager_destroy_manager(_Asp_Manager *manager)
 {
     if (manager == NULL)
         return;
-    if (manager->inst_mem != NULL)
-        _asp_inst_mem_free(manager->inst_mem);
-    if (manager->memory != NULL)
-        _asp_free_memory(manager->memory);
+    _asp_inst_mem_free(manager->inst_mem);
+    _asp_free_memory(manager->memory);
     if (manager->cpu != NULL && manager->core_count > 0)
     {
         for (aSize_t i = 0; i < manager->core_count; i++)
@@ -63,12 +61,9 @@ void _asp_manager_destroy_manager(_Asp_Manager *manager)
         }
         free(manager->cpu);
     }
-    if (manager->lock != NULL)
-        _asp_mutex_destroy(manager->lock);
-    if (manager->cond != NULL)
-        _asp_cond_destroy(manager->cond);
-    if (manager->hdlr != NULL)
-        _asp_destroy_intr_hdlr(manager->hdlr);
+    _asp_mutex_destroy(manager->lock);
+    _asp_cond_destroy(manager->cond);
+    _asp_destroy_intr_hdlr(manager->hdlr);
     if (manager->core_threads != NULL && manager->core_count > 0)
     {
         for (aSize_t i = 0; i < manager->core_count; i++)
@@ -109,27 +104,49 @@ failed:
     return aFalse;
 }
 
-aBool _asp_manager_init_VM(_Asp_Manager *manager, aQptr_t instructions, aSize_t ilen, aQptr_t data, aSize_t dlen)
+aBool _asp_manager_init_VM(_Asp_Manager *manager, acStr_t _file_path)
 {
     if (manager == NULL)
         return aFalse;
-    // manager->inst_mem = _asp_inst_mem_init((ilen / _ASP_PAGE_SIZE) + (ilen % _ASP_PAGE_SIZE));
-    manager->inst_mem = _asp_inst_mem_init(1);
-    if (manager->inst_mem == NULL)
-        return aFalse;
-    if (_asp_inst_mem_write(manager->inst_mem, instructions, ilen, 0) == aFalse)
-        return aFalse;
-    if (data != NULL)
+    _Asp_Lexer *lexer = _asp_read_file(_file_path);
+    if (lexer == NULL)
     {
-        manager->memory = _asp_memory_init((dlen / _ASP_PAGE_SIZE) + (dlen % _ASP_PAGE_SIZE));
-        if (manager->memory == NULL)
-            return aFalse;
-        if (_asp_memory_write_chunk(manager->memory, 0, data, dlen) == aFalse)
-            return aFalse;
-    } // at the beginning, we only have 1 core
-    if (_asp_manager_boot_core(manager, 0, 0) == aFalse)
+        fprintf(stderr, "Reading failed.\n"); // additional error message
         return aFalse;
+    }
+    // we also have to figure out how many pages of memory we need
+    manager->inst_mem = _asp_inst_mem_init(lexer->_inst_size / _ASP_PAGE_SIZE + ((lexer->_inst_size % _ASP_PAGE_SIZE) > 0 ? 1 : 0));
+    if (manager->inst_mem == NULL)
+        goto failure;
+    if (_asp_inst_mem_write(manager->inst_mem, lexer->instrs, lexer->_inst_size, 0) == aFalse)
+        goto failure;
+    if (lexer->data != NULL)
+    {
+        manager->memory = _asp_memory_init((lexer->_data_size / _ASP_PAGE_SIZE) + ((lexer->_data_size % _ASP_PAGE_SIZE) > 0 ? 1 : 0));
+        if (manager->memory == NULL)
+            goto failure;
+        if (_asp_memory_write_chunk(manager->memory, 0, lexer->data, lexer->_data_size) == aFalse)
+            goto failure;
+    }
+    else
+    {
+        manager->memory = _asp_memory_init(1);
+        if (manager->memory == NULL)
+            goto failure;
+    }
+    if (_asp_manager_boot_core(manager, 0, 0) == aFalse)
+        goto failure;
+    if (lexer->data != NULL)
+        free(lexer->data);
+    free(lexer->instrs);
+    free(lexer);
     return aTrue;
+failure:
+    if (lexer->data != NULL)
+        free(lexer->data);
+    free(lexer->instrs);
+    free(lexer);
+    return aFalse;
 }
 
 void _asp_manager_stop_core(_Asp_Manager *manager, aQword core_id)
@@ -145,8 +162,8 @@ void _asp_manager_stop_core(_Asp_Manager *manager, aQword core_id)
     // if we have no more cores executing anything, we will just tell the manager to stop everything
     if (manager->core_count == 0)
     {
-        _asp_cond_signal(manager->cond);
         manager->stop_vm = aTrue;
+        _asp_cond_signal(manager->cond);
     }
     _asp_mutex_unlock(manager->lock);
 }
@@ -156,7 +173,7 @@ void *_asp_manager_run_vm(void *manager)
     _Asp_Manager *boss = (_Asp_Manager *)manager;
     // the _asp_init_VM will initialize the manager and make it ready for execution while this will start doing everything
     if (_asp_create_detached_thread(boss->core_threads[0], _asp_start_execution, boss->cpu[0]) == aFalse)
-        return NULL;
+        return (void*)-1;
     while (aTrue)
     {
         _asp_mutex_lock(boss->lock);
@@ -181,7 +198,7 @@ void *_asp_manager_run_vm(void *manager)
     // when stop_vm is set, the manager commands all the other cores(threads) to exit which terminates the VM
     // the manager thread also terminates and the control is transferred to the main thread which
     // the main thread can then clean things up
-    return boss->return_val; // we need to return if anything went wrong or right
+    return (void *)boss->return_val; // we need to return if anything went wrong or right
 }
 
 void _asp_manager_error(_Asp_Manager *manager, acStr_t err_msg)
@@ -213,7 +230,7 @@ void _asp_manager_add_core(_Asp_Manager *manager, aQword core_id)
             goto error;
         else
         {
-            // now we have start that core
+            // now we have to start that core
             // As per the definition, the Ax1 register of the requesting core should contain the starting address for this new core
             if (_asp_manager_boot_core(manager, manager->core_count, manager->cpu[core_id]->_asp_registers[Ax1]) == aFalse)
             {
@@ -224,7 +241,7 @@ void _asp_manager_add_core(_Asp_Manager *manager, aQword core_id)
             }
             else
             {
-                // we successfully did everything correctly
+                // we successfully did everything
                 // we just need to start that core's thread
                 if (_asp_create_detached_thread(manager->core_threads[manager->core_count], _asp_start_execution, manager->cpu[manager->core_count]) == aFalse)
                 {
@@ -268,7 +285,7 @@ void _asp_manager_IO_readChar(_Asp_Manager *manager, aQword core_id)
 {
     // reads a character from the user
     _asp_mutex_lock(manager->lock);
-    register aByte _in;
+    aByte _in;
     if (_asp_In_readChar(&_in) == aFalse)
     {
         manager->cpu[core_id]->running = aFalse; // stop for good purposes
@@ -291,7 +308,7 @@ void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id)
 {
     _asp_mutex_lock(manager->lock);
     register aSize_t len = manager->cpu[core_id]->_asp_registers[Ab];
-    register aByte _in[len]; // the length of the string in Ab[length includes the space for the terminating NULL character as well]
+    aByte _in[len]; // the length of the string in Ab[length includes the space for the terminating NULL character as well]
     if (_asp_In_readStr(_in, len) == aFalse)
     {
         manager->cpu[core_id]->running = aFalse; // stop for good purposes
@@ -299,7 +316,7 @@ void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id)
         _asp_manager_error(manager, "IO error: Unable or failed to read any byte");
         return;
     }
-    if (_asp_memory_write_bytes(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], &_in, len) == aFalse)
+    if (_asp_memory_write_bytes(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], _in, len) == aFalse)
     {
         // this is an error
         manager->cpu[core_id]->running = aFalse;
@@ -313,7 +330,8 @@ void _asp_manager_IO_readString(_Asp_Manager *manager, aQword core_id)
 void _asp_manager_IO_writeChar(_Asp_Manager *manager, aQword core_id)
 {
     _asp_mutex_lock(manager->lock);
-    if (_asp_write_byte(&manager->cpu[core_id]->_asp_registers[Aa]) != 1)
+    aByte val = manager->cpu[core_id]->_asp_registers[Aa] & 255;
+    if (_asp_write_byte(&val) != 1)
     {
         // there has been an error
         fprintf(stderr, "IO error: Unable to print a byte.\n");
@@ -329,7 +347,7 @@ void _asp_manager_IO_writeString(_Asp_Manager *manager, aQword core_id)
 {
     _asp_mutex_lock(manager->lock);
     register aSize_t len = manager->cpu[core_id]->_asp_registers[Ab];
-    register aByte _bytes[len];
+    aByte _bytes[len];
     if (_asp_memory_read_bytes(manager->memory, manager->cpu[core_id]->_asp_registers[Aa], _bytes, len) == aFalse)
     {
         // there has been an error

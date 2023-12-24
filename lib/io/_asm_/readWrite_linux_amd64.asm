@@ -81,7 +81,7 @@ _asp_read_bytes: ;; used to read strings of whose we know the size of
      mov rax, 1       ;; write syscall
      mov rsi, rdi     ;; the character to print
      mov rdi, _STDOUT ;; the standard output
-     mov rdx, 1        ;; just 1 character
+     mov rdx, 1       ;; just 1 character
      syscall
      ret              ;; should return 1 on success
 
@@ -100,7 +100,7 @@ _asp_write_string: ;; prints until a terminating character is encountered
     ; the length doesn't really matter here as we will print until '\0'
     mov r8, rdi ;; save the buffer
 print_loop:
-    cmp [rdi], 0         ;; is the current character a terminating character
+    cmp byte [rdi], 0         ;; is the current character a terminating character
     je success           ;; everything was a success
     call _asp_write_byte ;; print the byte
     cmp rax, 1           ;; did the print work?

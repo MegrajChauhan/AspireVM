@@ -43,7 +43,7 @@ aBool _asp_In_readStr(aBptr_t _store_in, aSize_t len)
     if (encountered == aFalse)
     {
         // discard all of the remaining characters
-        register aByte temp = 0;
+        aByte temp = 0;
         while (temp != '\n')
         {
             if (_asp_read_byte(&temp) != 1)
@@ -66,7 +66,7 @@ aBool _asp_In_readChar(aBptr_t _store_in)
     // the character entered can be a newline which will be stored in the memory but until a new line is reached other inputs are not accepted
     if ( ret == aTrue && *_store_in != '\n')
     {
-        register aByte temp = 0;
+        aByte temp = 0;
         while (temp != '\n')
         {
             if (_asp_read_byte(&temp) != 1)

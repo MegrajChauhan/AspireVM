@@ -33,7 +33,9 @@ However, the endianness of this memory depends on the system it is running on.
 #include "../../Utils/aspire_typedefs.h"
 #include "../../Utils/aspire_config.h"
 #include "../../Utils/aspire_helpers.h"
+#include "../../lib/thread/aspire_threads.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 /*
   Despite the changes, instruction memory will continue using one address for 8 bytes
@@ -56,6 +58,7 @@ typedef struct _Asp_Inst_Mem
     _Asp_Inst_Page **pages; // pointer to the pointer of pages
     aSize_t numofpages;
     _Asp_Imem_Err err;
+    _Asp_Mutex *lock;
 } _Asp_Inst_Mem;
 
 // we do not need extra bound checking because the manager and the CPU will try their best to not try to access memory that is out of bounds

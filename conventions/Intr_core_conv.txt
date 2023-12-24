@@ -6,3 +6,5 @@ READ_STR interrupt: Aa contains the starting address[In case of a string, one ad
 
 WRITE_CHAR: Aa contains the character.
 WRITE_STR: Aa contains the starting address of the string, Ab contains the length of the string
+
+gcc readWrite.o ../src/aspire_helpers.c ../src/lib/thread/aspire_threads.c ../src/Manager/input/aspire_read_input.c ../src/Manager/aspire_io.c ../src/aspire_memory.c ../src/aspire_instruction_memory.c ../src/Manager/aspire_interrupt_handler.c ../src/aspire_cpu.c ../src/Manager/aspire_manager.c ../Aspire/Aspire.c -o Aspire

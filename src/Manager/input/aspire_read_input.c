@@ -1,6 +1,6 @@
 #include "../../../Manager/input/aspire_read_input.h"
 
-_Asp_Lexer *_asp_read_file(FILE *_file_path, acStr_t _file_contents)
+_Asp_Lexer *_asp_read_file(acStr_t _file_path)
 {
     _Asp_Lexer *file = (_Asp_Lexer *)malloc(sizeof(_Asp_Lexer));
     if (file == NULL)
@@ -19,7 +19,7 @@ _Asp_Lexer *_asp_read_file(FILE *_file_path, acStr_t _file_contents)
         free(file);
         return NULL; // file is empty
     }
-    register char file_contents[len + 1];
+    char *file_contents = (char*)malloc(len);
     if (fread(file_contents, 1, len, _inp) < len)
     {
         fprintf(stderr, "Read error: Couldn't read the input file.\n");
@@ -46,8 +46,8 @@ _Asp_Lexer *_asp_read_file(FILE *_file_path, acStr_t _file_contents)
         return NULL;
     }
     // now we have almost everything we need
-    file->_inst_size = _ilen / 8 + (_ilen % 8 == 0) ? 1 : 0;
-    file->_data_size = (_is_data_present == aTrue) ? (_dlen / 8 + (_dlen % 8 == 0) ? 1 : 0) : 0;
+    file->_inst_size = _ilen / 64 + ((_ilen % 64 > 0) ? 1 : 0);
+    file->_data_size = (_is_data_present == aTrue) ? (_dlen / 64 + ((_dlen % 64 > 0) ? 1 : 0)) : 0;
     // now we know how many qwords there are
     file->instrs = (aQptr_t)malloc(8 * file->_inst_size);
     if (file->instrs == NULL)
@@ -69,9 +69,12 @@ _Asp_Lexer *_asp_read_file(FILE *_file_path, acStr_t _file_contents)
     }
     else
         file->data = NULL; // we have nothing to do here
+    // printf("Read instrs: %lu\n", _dlen);
     _asp_read_instructions(file);
+    // printf("Read instrs1\n");
     if (_is_data_present == aTrue)
         _asp_read_data(file);
+    // printf("Read successful\n");
     return file;
 }
 
@@ -85,12 +88,15 @@ aSize_t _asp_get_inst_len(_Asp_Lexer *lexer)
     {
         if (*temp == '0' || *temp == '1')
             i++;
+        else if (*temp == ' ' || *temp == '\n' || *temp == '\t')
+        {
+        }
         else
         {
             fprintf(stderr, "Read error: Unknown character %c in the input file.\n", *temp);
             return 0;
         }
-        *temp++;
+        temp++;
         if (*temp == ';')
         {
             encountered = aTrue;
@@ -110,17 +116,20 @@ aSize_t _asp_get_data_len(_Asp_Lexer *lexer)
 {
     // inst len must be called before this
     register aSize_t i = 0;
-    register char *temp = lexer->curr + lexer->_tpos;
+    register char *temp = lexer->curr + lexer->_tpos + 1;
     while (*temp != '\0')
     {
         if (*temp == '0' || *temp == '1')
             i++;
+        else if (*temp == ' ' || *temp == '\n' || *temp == '\t')
+        {
+        }
         else
         {
             fprintf(stderr, "Read error: Unknown character %c in the input file.\n", *temp);
             return lexer->_file_len; // this indicates error
         }
-        *temp++;
+        temp++;
     }
     return i; // here 0 wouldn't mean error it means we do not have any data
 }
@@ -128,10 +137,11 @@ aSize_t _asp_get_data_len(_Asp_Lexer *lexer)
 void _asp_read_instructions(_Asp_Lexer *lexer)
 {
     // this will extract the instructions
-    register char inst[64]; // since we read 64 characters in one big swoop
+    char inst[64]; // since we read 64 characters in one big swoop
     register aSize_t pos = 0;
     register aSize_t temp = 0;
     register aSize_t count = 0;
+    char *x = NULL;
     while (pos < lexer->_tpos)
     {
         while (pos < lexer->_tpos && temp < 64)
@@ -142,17 +152,19 @@ void _asp_read_instructions(_Asp_Lexer *lexer)
             else
             {
                 // this must be either 0 or a 1
+                // printf("%c %lu\n", *lexer->curr, temp);
                 inst[temp] = *(lexer->curr);
                 temp++;
             }
             pos++;
             lexer->curr++;
         }
-        if (temp == 63)
+        // printf("1 qword: %lu\n", temp);
+        if (temp == 64)
             temp = 0; // this will help in identifying incomplete qwords
         if (temp == 0)
         {
-            char *x;
+            // printf("%s\n", inst);
             lexer->instrs[count] = strtoull((const char *)inst, &x, 2);
             // the above shouldn't produce an error
             count++;
@@ -168,7 +180,6 @@ void _asp_read_instructions(_Asp_Lexer *lexer)
                 inst[temp] = '0'; // we have to simply interpret the missing bits as 0
             }
             // then the same as above
-            char *x;
             lexer->instrs[count] = strtoull((const char *)inst, &x, 2);
             // the above shouldn't produce an error
             count++;
@@ -181,11 +192,12 @@ void _asp_read_instructions(_Asp_Lexer *lexer)
 void _asp_read_data(_Asp_Lexer *lexer)
 {
     // this will extract the data
-    register char data[64]; // since we read 64 characters in one big swoop
+    char data[64]; // since we read 64 characters in one big swoop
     register aSize_t pos = lexer->_tpos + 1;
     register aSize_t temp = 0;
     register aSize_t count = 0;
-    while (pos < lexer->_file_len)
+    char *x = NULL;
+    while (*lexer->curr != '\0')
     {
         while (pos < lexer->_file_len && temp < 64)
         {
@@ -201,11 +213,10 @@ void _asp_read_data(_Asp_Lexer *lexer)
             pos++;
             lexer->curr++;
         }
-        if (temp == 63)
+        if (temp == 64)
             temp = 0; // this will help in identifying incomplete qwords
         if (temp == 0)
         {
-            char *x;
             lexer->data[count] = strtoull((const char *)data, &x, 2);
             // the above shouldn't produce an error
             count++;
@@ -221,7 +232,6 @@ void _asp_read_data(_Asp_Lexer *lexer)
                 data[temp] = '0'; // we have to simply interpret the missing bits as 0
             }
             // then the same as above
-            char *x;
             lexer->data[count] = strtoull((const char *)data, &x, 2);
             // the above shouldn't produce an error
             count++;

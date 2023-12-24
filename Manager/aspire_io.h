@@ -1,5 +1,5 @@
-#ifndef _ASP_INPUT_
-#define _ASP_INPUT_
+#ifndef _ASP_IO_
+#define _ASP_IO_
 
 #include "../Utils/aspire_typedefs.h"
 #include "../Utils/aspire_helpers.h"

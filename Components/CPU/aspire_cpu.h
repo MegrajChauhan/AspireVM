@@ -186,7 +186,7 @@ enum _Asp_Instrs
     ASP_XOR_REG_REG, // logical XOR instruction
 
     ASP_NOT, // logical NOT instruction
-
+    
     // these don't get their own variants
     ASP_LSHIFT, // bit-shift left instruction
     ASP_RSHIFT, // bit-shift right instruction
