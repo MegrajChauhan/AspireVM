@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include <stdio.h>
 #include "../Manager/aspire_manager.h"
-#include <syscall.h>
+#include <unistd.h>
 
 int main(int argc, char **argv)
 {
@@ -39,6 +39,11 @@ int main(int argc, char **argv)
     //     0b00000010,
     //     0x00, 0x00, 0x00, 0x00, 0b0000000100000000000000000000000000000000000000000000000000000000
     // };
+    if (sbrk(_ASP_PAGE_SIZE * 3) == (void*)-1)
+    {
+        printf("Errro\n");
+        return 0;
+    }
     _Asp_Manager *manager = _asp_manager_init_manager();
     if (manager == NULL)
     {

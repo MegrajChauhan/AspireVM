@@ -1,0 +1,81 @@
+==13647== Memcheck, a memory error detector
+==13647== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==13647== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==13647== Command: ./Aspire
+==13647== Parent PID: 12806
+==13647== 
+==13647== Invalid read of size 1
+==13647==    at 0x403445: _asp_get_data_len (aspire_read_input.c:127)
+==13647==    by 0x403113: _asp_read_file (aspire_read_input.c:43)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647==  Address 0x501a724 is 0 bytes after a block of size 196 alloc'd
+==13647==    at 0x4E050C5: malloc (vg_replace_malloc.c:442)
+==13647==    by 0x403045: _asp_read_file (aspire_read_input.c:23)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647== 
+==13647== Invalid write of size 8
+==13647==    at 0x403530: _asp_read_instructions (aspire_read_input.c:175)
+==13647==    by 0x4032B4: _asp_read_file (aspire_read_input.c:81)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647==  Address 0x501a788 is 0 bytes after a block of size 24 alloc'd
+==13647==    at 0x4E050C5: malloc (vg_replace_malloc.c:442)
+==13647==    by 0x403253: _asp_read_file (aspire_read_input.c:73)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647== 
+==13647== 
+==13647== HEAP SUMMARY:
+==13647==     in use at exit: 236 bytes in 2 blocks
+==13647==   total heap usage: 28 allocs, 26 frees, 2,364,924 bytes allocated
+==13647== 
+==13647== 40 bytes in 1 blocks are still reachable in loss record 1 of 2
+==13647==    at 0x4E050C5: malloc (vg_replace_malloc.c:442)
+==13647==    by 0x401358: _asp_mutex_init (aspire_threads.c:6)
+==13647==    by 0x403B8C: _asp_InBuf_init (aspire_io.c:8)
+==13647==    by 0x407BEF: _asp_manager_init_manager (aspire_manager.c:42)
+==13647==    by 0x408DC4: main (Aspire.c:47)
+==13647== 
+==13647== 196 bytes in 1 blocks are definitely lost in loss record 2 of 2
+==13647==    at 0x4E050C5: malloc (vg_replace_malloc.c:442)
+==13647==    by 0x403045: _asp_read_file (aspire_read_input.c:23)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647== 
+==13647== LEAK SUMMARY:
+==13647==    definitely lost: 196 bytes in 1 blocks
+==13647==    indirectly lost: 0 bytes in 0 blocks
+==13647==      possibly lost: 0 bytes in 0 blocks
+==13647==    still reachable: 40 bytes in 1 blocks
+==13647==         suppressed: 0 bytes in 0 blocks
+==13647== 
+==13647== ERROR SUMMARY: 3 errors from 3 contexts (suppressed: 0 from 0)
+==13647== 
+==13647== 1 errors in context 1 of 3:
+==13647== Invalid write of size 8
+==13647==    at 0x403530: _asp_read_instructions (aspire_read_input.c:175)
+==13647==    by 0x4032B4: _asp_read_file (aspire_read_input.c:81)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647==  Address 0x501a788 is 0 bytes after a block of size 24 alloc'd
+==13647==    at 0x4E050C5: malloc (vg_replace_malloc.c:442)
+==13647==    by 0x403253: _asp_read_file (aspire_read_input.c:73)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647== 
+==13647== 
+==13647== 1 errors in context 2 of 3:
+==13647== Invalid read of size 1
+==13647==    at 0x403445: _asp_get_data_len (aspire_read_input.c:127)
+==13647==    by 0x403113: _asp_read_file (aspire_read_input.c:43)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647==  Address 0x501a724 is 0 bytes after a block of size 196 alloc'd
+==13647==    at 0x4E050C5: malloc (vg_replace_malloc.c:442)
+==13647==    by 0x403045: _asp_read_file (aspire_read_input.c:23)
+==13647==    by 0x407F6E: _asp_manager_init_VM (aspire_manager.c:111)
+==13647==    by 0x408DF1: main (Aspire.c:54)
+==13647== 
+==13647== ERROR SUMMARY: 3 errors from 3 contexts (suppressed: 0 from 0)

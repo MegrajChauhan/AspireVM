@@ -14,9 +14,8 @@ int main()
     {
         printf("inst: %lu\n", lexer->instrs[i]);
     }
-    free(lexer->instrs);
-    lexer->instrs = NULL;
     free(lexer->data);
     free(lexer->_file_contents);
+    free(lexer->instrs);
     free(lexer);
 }

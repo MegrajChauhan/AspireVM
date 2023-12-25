@@ -17,13 +17,15 @@ _Asp_Lexer *_asp_read_file(acStr_t _file_path)
     {
         fprintf(stderr, "Read error: The file %s is an empty file.\n", _file_path); // print the error
         free(file);
+        fclose(_inp);
         return NULL; // file is empty
     }
-    char *file_contents = (char*)malloc(len);
+    char *file_contents = (char *)malloc(len);
     if (fread(file_contents, 1, len, _inp) < len)
     {
         fprintf(stderr, "Read error: Couldn't read the input file.\n");
         free(file);
+        fclose(_inp);
         return NULL; // couldn't read the file
     }
     file->_file_contents = file_contents;
@@ -34,6 +36,7 @@ _Asp_Lexer *_asp_read_file(acStr_t _file_path)
     if ((_ilen = _asp_get_inst_len(file)) == 0)
     {
         free(file);
+        fclose(_inp);
         return NULL;
     }
     register aBool _is_data_present = aTrue;
@@ -43,19 +46,13 @@ _Asp_Lexer *_asp_read_file(acStr_t _file_path)
     {
         // this is an error
         free(file);
+        fclose(_inp);
         return NULL;
     }
     // now we have almost everything we need
     file->_inst_size = _ilen / 64 + ((_ilen % 64 > 0) ? 1 : 0);
     file->_data_size = (_is_data_present == aTrue) ? (_dlen / 64 + ((_dlen % 64 > 0) ? 1 : 0)) : 0;
     // now we know how many qwords there are
-    file->instrs = (aQptr_t)malloc(8 * file->_inst_size);
-    if (file->instrs == NULL)
-    {
-        fprintf(stderr, "Read Internal error: Unable to read instructions.\n");
-        free(file);
-        return NULL;
-    }
     if (_is_data_present == aTrue)
     {
         file->data = (aQptr_t)malloc(8 * file->_data_size);
@@ -64,17 +61,27 @@ _Asp_Lexer *_asp_read_file(acStr_t _file_path)
             fprintf(stderr, "Read Internal error: Unable to read data.\n");
             free(file->instrs);
             free(file);
+            fclose(_inp);
             return NULL;
         }
     }
     else
-        file->data = NULL; // we have nothing to do here
-    // printf("Read instrs: %lu\n", _dlen);
+    {
+        // we have nothing to do here
+        file->data = NULL;
+    }
+    file->instrs = (aQptr_t)malloc(8 * file->_inst_size);
+    if (file->instrs == NULL)
+    {
+        fprintf(stderr, "Read Internal error: Unable to read instructions.\n");
+        free(file);
+        fclose(_inp);
+        return NULL;
+    }
     _asp_read_instructions(file);
-    // printf("Read instrs1\n");
     if (_is_data_present == aTrue)
         _asp_read_data(file);
-    // printf("Read successful\n");
+    fclose(_inp);
     return file;
 }
 
